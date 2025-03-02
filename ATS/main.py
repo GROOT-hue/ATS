@@ -123,4 +123,10 @@ def main():
                     st.subheader("Recommendations")
                     missing_keywords = set(job_keywords) - set(resume_keywords)
                     if missing_keywords:
-                        st.write("Consider adding these keywords to your resume
+                        st.write("Consider adding these keywords to your resume:")
+                        st.write(", ".join(missing_keywords))
+                    else:
+                        st.write("Great match! Your resume covers all key job requirements.")
+
+if __name__ == "__main__":
+    main()

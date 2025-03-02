@@ -52,30 +52,36 @@ def extract_keywords(text, top_n=20):
     keywords = [word for word, freq in word_freq.most_common(top_n)]
     return keywords
 
+def extract_keywords_from_job_name(job_name):
+    """Extract keywords from job name"""
+    tokens = preprocess_text(job_name)
+    return tokens
+
 def calculate_match_score(resume_keywords, job_keywords):
     """Calculate match score between resume and job description"""
     resume_set = set(resume_keywords)
     job_set = set(job_keywords)
     common_keywords = resume_set.intersection(job_set)
-    match_score = (len(common_keywords) / len(job_set)) * 100
+    match_score = (len(common_keywords) / max(len(job_set), 1)) * 100  # Avoid division by zero
     return match_score, common_keywords
 
 def main():
     st.title("ATS Resume Analyzer")
-    st.write("Upload your resume and job description to analyze compatibility")
+    st.write("Upload your resume and enter a job title to analyze compatibility")
 
-    # File upload sections
+    # File upload and job title input
     resume_file = st.file_uploader("Upload Resume (PDF or DOCX)", type=['pdf', 'docx'])
-    job_desc_file = st.file_uploader("Upload Job Description (PDF, DOCX, or TXT)", 
-                                   type=['pdf', 'docx', 'txt'])
+    job_name = st.text_input("Enter Job Title", "")
 
     # Submit button
     analyze_button = st.button("Analyze")
 
-    # Only process when button is clicked and files are uploaded
+    # Process when button is clicked
     if analyze_button:
-        if resume_file is None or job_desc_file is None:
-            st.error("Please upload both a resume and job description before analyzing.")
+        if resume_file is None:
+            st.error("Please upload a resume before analyzing.")
+        elif not job_name.strip():
+            st.error("Please enter a job title before analyzing.")
         else:
             with st.spinner("Analyzing..."):
                 # Extract text from resume
@@ -84,20 +90,12 @@ def main():
                 else:
                     resume_text = extract_text_from_docx(resume_file)
 
-                # Extract text from job description
-                if job_desc_file.type == "application/pdf":
-                    job_text = extract_text_from_pdf(job_desc_file)
-                elif job_desc_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-                    job_text = extract_text_from_docx(job_desc_file)
-                else:
-                    job_text = job_desc_file.getvalue().decode("utf-8")
-
-                if not resume_text or not job_text:
-                    st.error("Could not extract text from one or both files.")
+                if not resume_text:
+                    st.error("Could not extract text from resume.")
                 else:
                     # Extract keywords
                     resume_keywords = extract_keywords(resume_text)
-                    job_keywords = extract_keywords(job_text)
+                    job_keywords = extract_keywords_from_job_name(job_name)
 
                     # Calculate match score
                     match_score, common_keywords = calculate_match_score(resume_keywords, job_keywords)
@@ -111,7 +109,7 @@ def main():
                         st.write(", ".join(resume_keywords))
                         
                     with col2:
-                        st.write("Job Description Keywords:")
+                        st.write("Job Title Keywords:")
                         st.write(", ".join(job_keywords))
 
                     st.subheader("Match Score")
@@ -125,10 +123,4 @@ def main():
                     st.subheader("Recommendations")
                     missing_keywords = set(job_keywords) - set(resume_keywords)
                     if missing_keywords:
-                        st.write("Consider adding these keywords to your resume:")
-                        st.write(", ".join(missing_keywords))
-                    else:
-                        st.write("Great match! Your resume covers all key job requirements.")
-
-if __name__ == "__main__":
-    main()
+                        st.write("Consider adding these keywords to your resume

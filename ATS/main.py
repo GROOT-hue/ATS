@@ -12,6 +12,42 @@ from nltk.tokenize import word_tokenize
 nltk.download('punkt', quiet=True)
 nltk.download('stopwords', quiet=True)
 
+# Custom CSS for gradient background and centered layout
+st.markdown("""
+    <style>
+    .main {
+        background: linear-gradient(135deg, #6e8efb, #a777e3);
+        padding: 2rem;
+    }
+    .stApp {
+        max-width: 800px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .stButton>button {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 0.5rem 2rem;
+        font-weight: bold;
+    }
+    .stButton>button:hover {
+        background: linear-gradient(135deg, #45a049, #4CAF50);
+    }
+    h1 {
+        color: #333;
+        text-align: center;
+    }
+    .stProgress > div > div > div > div {
+        background-color: #4CAF50;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 def extract_text_from_pdf(pdf_file):
     """Extract text from PDF file"""
     try:
@@ -62,19 +98,18 @@ def calculate_match_score(resume_keywords, job_keywords):
     resume_set = set(resume_keywords)
     job_set = set(job_keywords)
     common_keywords = resume_set.intersection(job_set)
-    match_score = (len(common_keywords) / max(len(job_set), 1)) * 100  # Avoid division by zero
+    match_score = (len(common_keywords) / max(len(job_set), 1)) * 100
     return match_score, common_keywords
 
 def main():
     st.title("ATS Resume Analyzer")
     st.write("Upload your resume and enter a job title to analyze compatibility")
 
-    # File upload and job title input
-    resume_file = st.file_uploader("Upload Resume (PDF or DOCX)", type=['pdf', 'docx'])
-    job_name = st.text_input("Enter Job Title", "")
-
-    # Submit button
-    analyze_button = st.button("Analyze")
+    # Input section
+    with st.container():
+        resume_file = st.file_uploader("Upload Resume (PDF or DOCX)", type=['pdf', 'docx'])
+        job_name = st.text_input("Enter Job Title", "")
+        analyze_button = st.button("Analyze", key="analyze")
 
     # Process when button is clicked
     if analyze_button:
@@ -100,7 +135,7 @@ def main():
                     # Calculate match score
                     match_score, common_keywords = calculate_match_score(resume_keywords, job_keywords)
 
-                    # Display results
+                    # Results section
                     st.subheader("Analysis Results")
                     col1, col2 = st.columns(2)
                     
@@ -119,7 +154,7 @@ def main():
                     st.subheader("Matching Keywords")
                     st.write(", ".join(common_keywords))
 
-                    # Provide recommendations
+                    # Recommendations
                     st.subheader("Recommendations")
                     missing_keywords = set(job_keywords) - set(resume_keywords)
                     if missing_keywords:
